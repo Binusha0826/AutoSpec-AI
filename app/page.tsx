@@ -1,69 +1,101 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState } from "react";
+
+type Car = {
+  id: number; brand: string; model: string; type: string; price: string;
+  engine: string; power: string; fuel: string; transmission: string; image: string;
+  colors: { name: string; hex: string }[];
+  description: string;
+};
+
+const brands = ["BMW", "Toyota", "Mercedes-Benz", "Audi", "Honda", "Porsche"];
+const cars: Car[] = [
+  { id: 1, brand: "BMW", model: "M4 Competition", type: "Coupe", price: "$79,100", engine: "3.0L Twin-Turbo I6", power: "503 HP", fuel: "Petrol", transmission: "8-speed automatic", image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Grey",hex:"#777a7d"},{name:"Black",hex:"#151515"},{name:"White",hex:"#eeeeea"}], description: "A performance-focused coupe with twin-turbo power and a driver-focused cabin." },
+  { id: 2, brand: "Porsche", model: "911 Carrera", type: "Sports Car", price: "$120,000", engine: "3.0L Twin-Turbo Flat-6", power: "379 HP", fuel: "Petrol", transmission: "8-speed PDK", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Red",hex:"#bd2028"},{name:"Black",hex:"#151515"},{name:"Chalk",hex:"#c9c8c2"}], description: "An iconic sports car balancing everyday usability with engaging performance." },
+  { id: 3, brand: "Mercedes-Benz", model: "AMG GT", type: "Sports Coupe", price: "$136,500", engine: "4.0L V8 Biturbo", power: "577 HP", fuel: "Petrol", transmission: "9-speed automatic", image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Black",hex:"#151515"},{name:"Silver",hex:"#b7b9ba"},{name:"Red",hex:"#9d1b23"}], description: "A grand-touring performance coupe with bold styling and a muscular V8." },
+  { id: 4, brand: "Toyota", model: "Supra 3.0", type: "Sports Car", price: "$56,250", engine: "3.0L Turbo I6", power: "382 HP", fuel: "Petrol", transmission: "8-speed automatic", image: "https://images.unsplash.com/photo-1614200187524-dc4b892acf16?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Red",hex:"#bd2028"},{name:"White",hex:"#eeeeea"},{name:"Black",hex:"#171717"}], description: "A compact rear-wheel-drive sports car built around responsive handling." },
+  { id: 5, brand: "Toyota", model: "Camry", type: "Sedan", price: "$28,400", engine: "2.5L Hybrid", power: "225 HP", fuel: "Hybrid", transmission: "e-CVT", image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=1400&q=85", colors: [{name:"White",hex:"#eeeeea"},{name:"Black",hex:"#171717"},{name:"Grey",hex:"#85898d"}], description: "A comfortable everyday sedan with an efficiency-minded hybrid option." },
+  { id: 6, brand: "Honda", model: "Civic Type R", type: "Hatchback", price: "$45,895", engine: "2.0L Turbo I4", power: "315 HP", fuel: "Petrol", transmission: "6-speed manual", image: "https://images.unsplash.com/photo-1594070319944-7c0cbebb6f58?auto=format&fit=crop&w=1400&q=85", colors: [{name:"White",hex:"#eeeeea"},{name:"Red",hex:"#bd2028"},{name:"Black",hex:"#171717"}], description: "A practical hatchback with track-inspired engineering and an engaging gearbox." },
+  { id: 7, brand: "Audi", model: "RS 5", type: "Sportback", price: "$79,900", engine: "2.9L Twin-Turbo V6", power: "444 HP", fuel: "Petrol", transmission: "8-speed automatic", image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Grey",hex:"#85898d"},{name:"Black",hex:"#171717"},{name:"White",hex:"#eeeeea"}], description: "A refined performance car combining traction, comfort and everyday usability." },
+  { id: 8, brand: "BMW", model: "M3 Sedan", type: "Sedan", price: "$76,000", engine: "3.0L Twin-Turbo I6", power: "473 HP", fuel: "Petrol", transmission: "6-speed manual", image: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Green",hex:"#315a43"},{name:"Black",hex:"#171717"},{name:"White",hex:"#eeeeea"}], description: "A high-performance sport sedan pairing four-door practicality with sharp handling." },
+  { id: 9, brand: "Mercedes-Benz", model: "C-Class", type: "Sedan", price: "$46,000", engine: "2.0L Turbo I4", power: "255 HP", fuel: "Petrol mild hybrid", transmission: "9-speed automatic", image: "https://images.unsplash.com/photo-1618843479618-39b6c7a9e8c2?auto=format&fit=crop&w=1400&q=85", colors: [{name:"White",hex:"#eeeeea"},{name:"Black",hex:"#171717"},{name:"Grey",hex:"#85898d"}], description: "A premium compact sedan focused on comfort, technology and understated styling." },
+  { id: 10, brand: "Porsche", model: "Macan", type: "SUV", price: "$62,900", engine: "2.0L Turbo I4", power: "261 HP", fuel: "Petrol", transmission: "7-speed PDK", image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=1400&q=85", colors: [{name:"White",hex:"#eeeeea"},{name:"Black",hex:"#171717"},{name:"Blue",hex:"#294c70"}], description: "A compact luxury SUV with sporty road manners and everyday versatility." },
+  { id: 11, brand: "Toyota", model: "Land Cruiser", type: "SUV", price: "$56,700", engine: "2.4L Turbo Hybrid", power: "326 HP", fuel: "Hybrid", transmission: "8-speed automatic", image: "https://images.unsplash.com/photo-1519245659620-e859806a8d3b?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Sand",hex:"#b8a27b"},{name:"Black",hex:"#171717"},{name:"White",hex:"#eeeeea"}], description: "A rugged SUV designed for adventure, with off-road capability." },
+  { id: 12, brand: "Audi", model: "R8 V10", type: "Supercar", price: "$158,600", engine: "5.2L V10", power: "562 HP", fuel: "Petrol", transmission: "7-speed dual-clutch", image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Yellow",hex:"#d5b51d"},{name:"Black",hex:"#171717"},{name:"Grey",hex:"#85898d"}], description: "A dramatic mid-engine supercar known for its naturally aspirated V10." },
+];
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+  const [brand, setBrand] = useState("All");
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState("All");
+  const [engine, setEngine] = useState("All");
+  const [activeCar, setActiveCar] = useState<Car | null>(null);
+  const [activeColor, setActiveColor] = useState(0);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [chat, setChat] = useState<{role:"assistant"|"user";text:string}[]>([
+    {role:"assistant",text:"Hi! Tell me which car you want, or describe a body type, budget or engine. This demo assistant searches the cars currently in this catalogue."}
+  ]);
+
+  const filteredCars = useMemo(() => cars.filter((car) => {
+    const haystack = `${car.brand} ${car.model} ${car.type} ${car.engine} ${car.fuel}`.toLowerCase();
+    return (brand === "All" || car.brand === brand) &&
+      (type === "All" || car.type === type) &&
+      (engine === "All" || car.engine.toLowerCase().includes(engine.toLowerCase())) &&
+      (!query.trim() || haystack.includes(query.trim().toLowerCase()));
+  }), [brand, type, engine, query]);
+
+  function scrollCars() { document.getElementById("featured")?.scrollIntoView({behavior:"smooth"}); }
+  function sendQuestion() {
+    const q = question.trim();
+    if (!q) return;
+    const lower = q.toLowerCase();
+    const matches = cars.filter((car) => `${car.brand} ${car.model} ${car.type} ${car.engine} ${car.fuel}`.toLowerCase().includes(lower));
+    let answer: string;
+    if (matches.length) answer = `I found: ${matches.slice(0,5).map((c) => `${c.brand} ${c.model} — ${c.type}, ${c.engine}, ${c.power}`).join("; ")}. Click a vehicle card to see more details.`;
+    else if (/suv|family|off.?road|space/.test(lower)) answer = `SUV options in this demo catalogue: ${cars.filter(c=>c.type==="SUV").map(c=>`${c.brand} ${c.model}`).join(" and ")}.`;
+    else if (/budget|cheap|price|afford/.test(lower)) answer = `Some lower listed prices in this sample catalogue: ${[...cars].sort((a,b)=>Number(a.price.replace(/[$,]/g,""))-Number(b.price.replace(/[$,]/g,""))).slice(0,3).map(c=>`${c.brand} ${c.model} (${c.price})`).join(", ")}. Prices are examples and may not reflect your local market.`;
+    else if (/fast|sport|power|performance|horsepower/.test(lower)) answer = `Performance examples: ${[...cars].sort((a,b)=>Number(b.power.match(/\d+/)?.[0]||0)-Number(a.power.match(/\d+/)?.[0]||0)).slice(0,3).map(c=>`${c.brand} ${c.model} (${c.power})`).join(", ")}. Please verify exact trim specifications.`;
+    else answer = "I can search the local demo catalogue, but this is not connected to a live AI model yet. Try a specific model (like Toyota Camry), or ask for an SUV, budget car or performance car.";
+    setChat((old)=>[...old,{role:"user",text:q},{role:"assistant",text:answer}]);
+    setQuestion("");
+  }
+
+  return <main className="min-h-screen bg-[#050505] text-white">
+    <nav className="absolute left-0 right-0 top-0 z-20"><div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
+      <a href="#" className="text-xl font-bold tracking-[0.18em]">AUTOSPEC<span className="text-zinc-500">.</span></a>
+      <div className="hidden items-center gap-8 text-sm text-zinc-400 md:flex"><a href="#" className="text-white">Explore</a><a href="#brands" className="hover:text-white">Brands</a><a href="#featured" className="hover:text-white">Vehicles</a><a href="#about" className="hover:text-white">About</a></div>
+      <button onClick={()=>setAiOpen(true)} className="rounded-full border border-white/20 px-5 py-2 text-sm hover:bg-white hover:text-black">AI Assistant ↗</button>
+    </div></nav>
+
+    <section className="relative flex min-h-[690px] items-center overflow-hidden"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:"linear-gradient(90deg, rgba(5,5,5,.96) 0%, rgba(5,5,5,.7) 45%, rgba(5,5,5,.15) 100%), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=2200&q=90')"}}/><div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/30"/>
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 pt-24 lg:px-10"><div className="max-w-3xl"><p className="mb-5 text-xs font-semibold uppercase tracking-[0.35em] text-zinc-400">Intelligent Car Discovery</p><h1 className="text-5xl font-semibold leading-[.95] tracking-[-.04em] sm:text-6xl lg:text-8xl">Find the car<br/><span className="text-zinc-400">that fits you.</span></h1><p className="mt-7 max-w-xl text-base leading-7 text-zinc-300 sm:text-lg">Explore vehicles, discover specifications, compare models and find your perfect match.</p><div className="mt-10 flex flex-col gap-3 sm:flex-row"><button onClick={scrollCars} className="rounded-full bg-white px-7 py-4 text-sm font-semibold text-black hover:bg-zinc-200">Explore Cars →</button><button onClick={()=>setAiOpen(true)} className="rounded-full border border-white/20 bg-white/5 px-7 py-4 text-sm hover:bg-white/10">Ask AI Assistant ↗</button></div></div></div>
+      <div className="absolute bottom-8 right-8 hidden text-right lg:block"><p className="text-xs uppercase tracking-[0.3em] text-zinc-500">Discover</p><p className="mt-1 text-sm text-zinc-300">Performance · Design · Technology</p></div>
+    </section>
+
+    <section className="relative z-10 mx-auto -mt-10 max-w-6xl px-6"><div className="rounded-2xl border border-white/10 bg-[#101010]/95 p-3 shadow-2xl backdrop-blur-xl"><div className="grid gap-3 md:grid-cols-[1.5fr_1fr_1fr_auto]">
+      <label className="rounded-xl bg-white/[.05] px-5 py-3"><span className="block text-[10px] uppercase tracking-widest text-zinc-500">Search cars</span><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Try Toyota Camry, BMW M4..." className="mt-1 w-full bg-transparent text-sm outline-none placeholder:text-zinc-600"/></label>
+      <label className="rounded-xl bg-white/[.05] px-5 py-3"><span className="block text-[10px] uppercase tracking-widest text-zinc-500">Body type</span><select value={type} onChange={e=>setType(e.target.value)} className="mt-1 w-full bg-transparent text-sm text-zinc-200 outline-none"><option className="bg-[#101010]" value="All">Any type</option>{[...new Set(cars.map(c=>c.type))].map(t=><option className="bg-[#101010]" key={t}>{t}</option>)}</select></label>
+      <label className="rounded-xl bg-white/[.05] px-5 py-3"><span className="block text-[10px] uppercase tracking-widest text-zinc-500">Engine</span><select value={engine} onChange={e=>setEngine(e.target.value)} className="mt-1 w-full bg-transparent text-sm text-zinc-200 outline-none"><option className="bg-[#101010]" value="All">Any engine</option>{["Turbo","Hybrid","V8","V10"].map(e=><option className="bg-[#101010]" key={e}>{e}</option>)}</select></label>
+      <button onClick={scrollCars} className="rounded-xl bg-white px-7 py-4 text-sm font-semibold text-black hover:bg-zinc-200">Search ↗</button>
+    </div></div></section>
+
+    <section id="brands" className="mx-auto max-w-7xl px-6 py-20 lg:px-10"><div className="mb-10"><p className="text-xs uppercase tracking-[.3em] text-zinc-500">Explore</p><h2 className="mt-3 text-3xl font-semibold sm:text-4xl">Popular Brands</h2></div><div className="flex flex-wrap gap-3">{["All",...brands].map(b=><button key={b} onClick={()=>setBrand(b)} className={`rounded-full border px-5 py-3 text-sm transition ${brand===b?"border-white bg-white text-black":"border-white/10 text-zinc-400 hover:border-white/30 hover:text-white"}`}>{b}</button>)}</div></section>
+
+    <section id="featured" className="mx-auto max-w-7xl px-6 pb-28 lg:px-10"><div className="mb-10 flex items-end justify-between gap-4"><div><p className="text-xs uppercase tracking-[.3em] text-zinc-500">Curated selection</p><h2 className="mt-3 text-3xl font-semibold sm:text-4xl">Explore Vehicles</h2><p className="mt-3 text-sm text-zinc-500">{filteredCars.length} vehicle(s) found</p></div><button onClick={()=>{setBrand("All");setType("All");setEngine("All");setQuery("");}} className="text-sm text-zinc-400 underline underline-offset-4 hover:text-white">Clear filters</button></div>
+      {filteredCars.length===0?<div className="rounded-2xl border border-white/10 p-12 text-center"><p className="text-lg">No matching cars found</p><p className="mt-2 text-sm text-zinc-400">Try another model name or clear the filters.</p></div>:<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredCars.map(car=><article key={car.id} role="button" tabIndex={0} onClick={()=>{setActiveCar(car);setActiveColor(0);}} onKeyDown={e=>{if(e.key==="Enter"){setActiveCar(car);setActiveColor(0);}}} className="group cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-white/[.03] transition hover:-translate-y-1 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50">
+        <div className="relative aspect-[16/10] overflow-hidden"><img src={car.image} alt={`${car.brand} ${car.model}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/><span className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1.5 text-xs">{car.type}</span><span className="absolute bottom-4 right-4 rounded-full bg-black/70 px-3 py-1.5 text-xs">View details ↗</span></div>
+        <div className="p-6"><p className="text-xs uppercase tracking-widest text-zinc-500">{car.brand}</p><h3 className="mt-2 text-2xl font-semibold">{car.model}</h3><div className="mt-5 grid grid-cols-2 gap-4 border-y border-white/10 py-5"><div><p className="text-xs text-zinc-500">Engine</p><p className="mt-1 text-sm">{car.engine}</p></div><div><p className="text-xs text-zinc-500">Power</p><p className="mt-1 text-sm">{car.power}</p></div></div><div className="mt-5 flex items-center justify-between"><div><p className="text-xs text-zinc-500">Example starting price</p><p className="mt-1 font-medium">{car.price}</p></div><span className="rounded-full border border-white/10 px-4 py-2 text-sm group-hover:bg-white group-hover:text-black">View →</span></div></div>
+      </article>)}</div>}
+      <p className="mt-8 text-xs leading-5 text-zinc-600">Demo catalogue only. Images may be representative; prices and specifications are examples and should be verified for the exact model year, trim and market.</p>
+    </section>
+
+    <section id="about" className="border-y border-white/10"><div className="mx-auto max-w-7xl px-6 py-24 lg:px-10"><div className="max-w-3xl"><p className="text-xs uppercase tracking-[.3em] text-zinc-500">Smart car discovery</p><h2 className="mt-5 text-4xl font-semibold sm:text-6xl">Tell us what you want.<br/><span className="text-zinc-500">Let’s find your match.</span></h2><p className="mt-6 max-w-xl leading-7 text-zinc-400">Describe your budget, preferred engine, body style and driving needs.</p><button onClick={()=>setAiOpen(true)} className="mt-8 rounded-full bg-white px-7 py-4 text-sm font-semibold text-black hover:bg-zinc-200">Start with AI ↗</button></div></div></section>
+    <footer className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-10 text-sm text-zinc-500 sm:flex-row sm:justify-between"><p>© 2026 AutoSpec AI</p><p>Intelligent Car Discovery Platform</p></footer>
+
+    {activeCar&&<div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" onClick={()=>setActiveCar(null)}><div role="dialog" aria-modal="true" onClick={e=>e.stopPropagation()} className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-white/15 bg-[#101010] shadow-2xl"><div className="flex items-center justify-between border-b border-white/10 px-6 py-4"><p className="text-sm text-zinc-400">VEHICLE DETAILS</p><button onClick={()=>setActiveCar(null)} className="rounded-full border border-white/15 px-3 py-1.5">✕</button></div><div className="grid md:grid-cols-2"><img src={activeCar.image} alt={`${activeCar.brand} ${activeCar.model}`} className="h-full min-h-64 max-h-[440px] w-full object-cover"/><div className="p-6 sm:p-8"><p className="text-xs uppercase tracking-widest text-zinc-500">{activeCar.brand} · {activeCar.type}</p><h2 className="mt-2 text-3xl font-semibold">{activeCar.model}</h2><p className="mt-4 leading-7 text-zinc-400">{activeCar.description}</p><p className="mt-6 text-xs uppercase tracking-widest text-zinc-500">Choose a sample colour</p><div className="mt-3 flex flex-wrap gap-2">{activeCar.colors.map((c,i)=><button key={c.name} onClick={()=>setActiveColor(i)} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-xs ${activeColor===i?"border-white":"border-white/10 text-zinc-400"}`}><span className="h-4 w-4 rounded-full border border-white/20" style={{backgroundColor:c.hex}}/>{c.name}</button>)}</div><p className="mt-2 text-xs text-zinc-500">Selected: {activeCar.colors[activeColor]?.name}. The demo colour selector changes the selection label; it does not recolour the photo.</p><div className="mt-5 grid grid-cols-2 gap-3">{[["Engine",activeCar.engine],["Power",activeCar.power],["Fuel",activeCar.fuel],["Transmission",activeCar.transmission],["Body type",activeCar.type],["Example price",activeCar.price]].map(([k,v])=><div key={k} className="rounded-xl border border-white/10 bg-white/[.03] p-3"><p className="text-xs text-zinc-500">{k}</p><p className="mt-1 text-sm">{v}</p></div>)}</div><button onClick={()=>{setActiveCar(null);setAiOpen(true);setChat(old=>[...old,{role:"assistant",text:`You are viewing ${activeCar.brand} ${activeCar.model}. Ask me to find similar cars or compare models.`}]);}} className="mt-6 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black">Ask about this car ↗</button></div></div></div></div>}
+
+    {aiOpen&&<div className="fixed inset-0 z-50 flex items-end justify-end bg-black/60 p-0 backdrop-blur-sm sm:p-5" onClick={()=>setAiOpen(false)}><section role="dialog" aria-modal="true" aria-label="AutoSpec assistant" onClick={e=>e.stopPropagation()} className="flex h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-white/15 bg-[#101010] shadow-2xl sm:h-[min(700px,90vh)] sm:rounded-3xl"><div className="flex items-center justify-between border-b border-white/10 p-5"><div><p className="font-semibold">AutoSpec Assistant</p><p className="mt-1 text-xs text-zinc-500">Catalogue assistant · Demo mode</p></div><button onClick={()=>setAiOpen(false)} className="rounded-full border border-white/15 px-3 py-1.5">✕</button></div><div className="flex-1 space-y-4 overflow-y-auto p-5">{chat.map((m,i)=><div key={i} className={`flex ${m.role==="user"?"justify-end":"justify-start"}`}><p className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 ${m.role==="user"?"bg-white text-black":"border border-white/10 bg-white/[.04] text-zinc-200"}`}>{m.text}</p></div>)}<div className="flex flex-wrap gap-2">{["Show me an SUV","Budget-friendly cars","Performance cars"].map(s=><button key={s} onClick={()=>setQuestion(s)} className="rounded-full border border-white/15 px-3 py-2 text-xs text-zinc-300 hover:bg-white/10">{s}</button>)}</div></div><form onSubmit={e=>{e.preventDefault();sendQuestion();}} className="flex gap-2 border-t border-white/10 p-4"><input value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Ask about a car..." className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[.05] px-4 py-3 text-sm outline-none placeholder:text-zinc-600"/><button type="submit" className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-black">Send</button></form><p className="px-5 pb-4 text-[10px] leading-4 text-zinc-600">This is a local demo assistant, not a live AI model. A secure backend/API is needed for real AI answers and live vehicle data.</p></section></div>}
+  </main>;
 }
