@@ -105,6 +105,7 @@ const fallbackImage =
   "https://placehold.co/1200x700/111318/e5e7eb?text=AutoSpec+AI";
 
 const featuredImage = "/cars/toyota-supra-2024-blue.png";
+const featuredVideo = "/videos/supra.mp4";
 
 const initialValuationForm = {
   brand: "Toyota",
@@ -462,24 +463,28 @@ export default function Home() {
                 Featured Sports Car
               </div>
 
-              <img
-                src={featuredImage}
-                alt="Featured Toyota GR Supra sports car"
-                onError={handleImageError}
-                className="aspect-[4/3] w-full object-cover"
-              />
+              <video
+  src={featuredVideo}
+  autoPlay
+  muted
+  loop
+  playsInline
+  preload="metadata"
+  className="aspect-[4/3] w-full object-cover"
+  aria-label="Featured Toyota GR Supra cinematic video"
+/>
 
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-5 pt-20 sm:p-7 sm:pt-24">
                 <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">
-                  Toyota · Performance Series
+                  01 / ICONS OF THE ROAD
                 </p>
                 <div className="mt-2 flex items-end justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-black sm:text-3xl">
-                      GR Supra
+                      Power Meets Prestige
                     </h2>
                     <p className="mt-1 text-sm text-zinc-400">
-                      3.0L Turbo · Inline-6
+                      A World of Automotive Excellence
                     </p>
                   </div>
                   <a
