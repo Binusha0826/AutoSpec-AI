@@ -162,7 +162,7 @@ export default function ValuationPage() {
                     onChange={updateField}
                     placeholder="e.g. 2020"
                     min="1950"
-                    max={new Date().getFullYear() + 1}
+                    max={2027}
                     required
                   />
                 </label>
@@ -267,7 +267,7 @@ export default function ValuationPage() {
       </section>
 
       <footer className="border-t border-white/10 px-6 py-6 text-center text-xs text-gray-600">
-        © {new Date().getFullYear()} AutoSpec AI. Built for smarter vehicle
+       © 2026 AutoSpec AI. Built for smarter vehicle
         decisions in Sri Lanka.
       </footer>
     </main>

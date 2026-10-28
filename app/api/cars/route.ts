@@ -3,6 +3,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
+
+
 export type Car = {
   id: number;
   brand: string;
