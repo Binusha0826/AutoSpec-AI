@@ -1,101 +1,1380 @@
+
+
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Car = {
-  id: number; brand: string; model: string; type: string; price: string;
-  engine: string; power: string; fuel: string; transmission: string; image: string;
-  colors: { name: string; hex: string }[];
+  id: number | string;
+  brand: string;
+  model: string;
+  year: number;
+  engine: string;
+  fuel: string;
+  transmission: string;
+  bodyType: string;
+  horsepower: number | string;
+  price: number | string;
   description: string;
+  image: string;
+  colors: string[];
+  imagesByColor: Record<string, string>;
 };
 
-const brands = ["BMW", "Toyota", "Mercedes-Benz", "Audi", "Honda", "Porsche"];
-const cars: Car[] = [
-  { id: 1, brand: "BMW", model: "M4 Competition", type: "Coupe", price: "$79,100", engine: "3.0L Twin-Turbo I6", power: "503 HP", fuel: "Petrol", transmission: "8-speed automatic", image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Grey",hex:"#777a7d"},{name:"Black",hex:"#151515"},{name:"White",hex:"#eeeeea"}], description: "A performance-focused coupe with twin-turbo power and a driver-focused cabin." },
-  { id: 2, brand: "Porsche", model: "911 Carrera", type: "Sports Car", price: "$120,000", engine: "3.0L Twin-Turbo Flat-6", power: "379 HP", fuel: "Petrol", transmission: "8-speed PDK", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Red",hex:"#bd2028"},{name:"Black",hex:"#151515"},{name:"Chalk",hex:"#c9c8c2"}], description: "An iconic sports car balancing everyday usability with engaging performance." },
-  { id: 3, brand: "Mercedes-Benz", model: "AMG GT", type: "Sports Coupe", price: "$136,500", engine: "4.0L V8 Biturbo", power: "577 HP", fuel: "Petrol", transmission: "9-speed automatic", image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Black",hex:"#151515"},{name:"Silver",hex:"#b7b9ba"},{name:"Red",hex:"#9d1b23"}], description: "A grand-touring performance coupe with bold styling and a muscular V8." },
-  { id: 4, brand: "Toyota", model: "Supra 3.0", type: "Sports Car", price: "$56,250", engine: "3.0L Turbo I6", power: "382 HP", fuel: "Petrol", transmission: "8-speed automatic", image: "https://images.unsplash.com/photo-1614200187524-dc4b892acf16?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Red",hex:"#bd2028"},{name:"White",hex:"#eeeeea"},{name:"Black",hex:"#171717"}], description: "A compact rear-wheel-drive sports car built around responsive handling." },
-  { id: 5, brand: "Toyota", model: "Camry", type: "Sedan", price: "$28,400", engine: "2.5L Hybrid", power: "225 HP", fuel: "Hybrid", transmission: "e-CVT", image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?auto=format&fit=crop&w=1400&q=85", colors: [{name:"White",hex:"#eeeeea"},{name:"Black",hex:"#171717"},{name:"Grey",hex:"#85898d"}], description: "A comfortable everyday sedan with an efficiency-minded hybrid option." },
-  { id: 6, brand: "Honda", model: "Civic Type R", type: "Hatchback", price: "$45,895", engine: "2.0L Turbo I4", power: "315 HP", fuel: "Petrol", transmission: "6-speed manual", image: "https://images.unsplash.com/photo-1594070319944-7c0cbebb6f58?auto=format&fit=crop&w=1400&q=85", colors: [{name:"White",hex:"#eeeeea"},{name:"Red",hex:"#bd2028"},{name:"Black",hex:"#171717"}], description: "A practical hatchback with track-inspired engineering and an engaging gearbox." },
-  { id: 7, brand: "Audi", model: "RS 5", type: "Sportback", price: "$79,900", engine: "2.9L Twin-Turbo V6", power: "444 HP", fuel: "Petrol", transmission: "8-speed automatic", image: "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Grey",hex:"#85898d"},{name:"Black",hex:"#171717"},{name:"White",hex:"#eeeeea"}], description: "A refined performance car combining traction, comfort and everyday usability." },
-  { id: 8, brand: "BMW", model: "M3 Sedan", type: "Sedan", price: "$76,000", engine: "3.0L Twin-Turbo I6", power: "473 HP", fuel: "Petrol", transmission: "6-speed manual", image: "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Green",hex:"#315a43"},{name:"Black",hex:"#171717"},{name:"White",hex:"#eeeeea"}], description: "A high-performance sport sedan pairing four-door practicality with sharp handling." },
-  { id: 9, brand: "Mercedes-Benz", model: "C-Class", type: "Sedan", price: "$46,000", engine: "2.0L Turbo I4", power: "255 HP", fuel: "Petrol mild hybrid", transmission: "9-speed automatic", image: "https://images.unsplash.com/photo-1618843479618-39b6c7a9e8c2?auto=format&fit=crop&w=1400&q=85", colors: [{name:"White",hex:"#eeeeea"},{name:"Black",hex:"#171717"},{name:"Grey",hex:"#85898d"}], description: "A premium compact sedan focused on comfort, technology and understated styling." },
-  { id: 10, brand: "Porsche", model: "Macan", type: "SUV", price: "$62,900", engine: "2.0L Turbo I4", power: "261 HP", fuel: "Petrol", transmission: "7-speed PDK", image: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=1400&q=85", colors: [{name:"White",hex:"#eeeeea"},{name:"Black",hex:"#171717"},{name:"Blue",hex:"#294c70"}], description: "A compact luxury SUV with sporty road manners and everyday versatility." },
-  { id: 11, brand: "Toyota", model: "Land Cruiser", type: "SUV", price: "$56,700", engine: "2.4L Turbo Hybrid", power: "326 HP", fuel: "Hybrid", transmission: "8-speed automatic", image: "https://images.unsplash.com/photo-1519245659620-e859806a8d3b?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Sand",hex:"#b8a27b"},{name:"Black",hex:"#171717"},{name:"White",hex:"#eeeeea"}], description: "A rugged SUV designed for adventure, with off-road capability." },
-  { id: 12, brand: "Audi", model: "R8 V10", type: "Supercar", price: "$158,600", engine: "5.2L V10", power: "562 HP", fuel: "Petrol", transmission: "7-speed dual-clutch", image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=1400&q=85", colors: [{name:"Yellow",hex:"#d5b51d"},{name:"Black",hex:"#171717"},{name:"Grey",hex:"#85898d"}], description: "A dramatic mid-engine supercar known for its naturally aspirated V10." },
+type ValuationResult = {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  estimatedPrice?: number | string | null;
+  estimated_price?: number | string | null;
+  priceRange?: string;
+  price_range?: string;
+  currency?: string;
+  confidence?: string;
+  summary?: string;
+  analysis?: string;
+  listings?: Array<{
+    title?: string;
+    url?: string;
+    link?: string;
+    price?: string | number;
+    snippet?: string;
+    description?: string;
+  }>;
+  results?: Array<{
+    title?: string;
+    url?: string;
+    link?: string;
+    price?: string | number;
+    snippet?: string;
+    description?: string;
+  }>;
+  [key: string]: unknown;
+};
+
+const colorStyles: Record<string, string> = {
+  Red: "bg-red-500",
+  Blue: "bg-blue-500",
+  Black: "bg-neutral-950",
+  White: "bg-white border border-zinc-500",
+  Grey: "bg-gray-400",
+  Silver: "bg-slate-300",
+  Green: "bg-green-600",
+  Yellow: "bg-yellow-400",
+};
+
+const brands = [
+  "All",
+  "Toyota",
+  "Honda",
+  "Suzuki",
+  "Nissan",
+  "Mitsubishi",
+  "Mazda",
+  "BMW",
+  "Mercedes-Benz",
+  "Audi",
+  "Kia",
+  "Hyundai",
+  "Volkswagen",
+  "Tesla",
+  "Porsche",
+  "Land Rover",
 ];
 
-export default function Home() {
-  const [brand, setBrand] = useState("All");
-  const [query, setQuery] = useState("");
-  const [type, setType] = useState("All");
-  const [engine, setEngine] = useState("All");
-  const [activeCar, setActiveCar] = useState<Car | null>(null);
-  const [activeColor, setActiveColor] = useState(0);
-  const [aiOpen, setAiOpen] = useState(false);
-  const [question, setQuestion] = useState("");
-  const [chat, setChat] = useState<{role:"assistant"|"user";text:string}[]>([
-    {role:"assistant",text:"Hi! Tell me which car you want, or describe a body type, budget or engine. This demo assistant searches the cars currently in this catalogue."}
-  ]);
+// Suggested models are grouped by their correct manufacturer.
+const modelsByBrand: Record<string, string[]> = {
+  Toyota: ["Aqua", "Prius", "Corolla", "Vitz", "Yaris", "Raize", "CHR", "Camry", "Land Cruiser", "Hilux", "Supra", "Axio", "Allion", "Premio", "Roomy"],
+  Honda: ["Civic", "Vezel", "Fit", "Grace", "CR-V", "Insight", "City", "HR-V", "Accord"],
+  Suzuki: ["Alto", "Wagon R", "Swift", "Spacia", "Jimny", "Every", "Baleno", "Celerio", "Vitara"],
+  Nissan: ["March", "Note", "Leaf", "X-Trail", "Sylphy", "Sunny", "Juke", "Dayz", "Serena"],
+  Mitsubishi: ["Lancer", "Outlander", "Pajero", "Montero", "ASX", "Eclipse Cross", "Mirage"],
+  Mazda: ["Demio", "Axela", "Mazda 3", "Mazda 6", "CX-3", "CX-5", "CX-8"],
+  BMW: ["1 Series", "2 Series", "3 Series", "5 Series", "7 Series", "X1", "X3", "X5", "M3", "M4"],
+  "Mercedes-Benz": ["A-Class", "C-Class", "E-Class", "S-Class", "CLA", "GLA", "GLC", "GLE", "GLS", "AMG GT"],
+  Audi: ["A3", "A4", "A5", "A6", "Q2", "Q3", "Q5", "Q7", "e-tron"],
+  Kia: ["Picanto", "Rio", "Cerato", "Sportage", "Sorento", "Seltos", "EV6"],
+  Hyundai: ["Accent", "Elantra", "Sonata", "Tucson", "Santa Fe", "Kona", "Ioniq 5"],
+  Volkswagen: ["Polo", "Golf", "Passat", "Tiguan", "T-Roc", "Touareg"],
+  Tesla: ["Model 3", "Model Y", "Model S", "Model X", "Cybertruck"],
+  Porsche: ["911 Carrera", "Cayman", "Boxster", "Macan", "Cayenne", "Panamera", "Taycan"],
+  "Land Rover": ["Defender", "Discovery", "Discovery Sport", "Range Rover", "Range Rover Sport", "Range Rover Evoque"],
+};
 
-  const filteredCars = useMemo(() => cars.filter((car) => {
-    const haystack = `${car.brand} ${car.model} ${car.type} ${car.engine} ${car.fuel}`.toLowerCase();
-    return (brand === "All" || car.brand === brand) &&
-      (type === "All" || car.type === type) &&
-      (engine === "All" || car.engine.toLowerCase().includes(engine.toLowerCase())) &&
-      (!query.trim() || haystack.includes(query.trim().toLowerCase()));
-  }), [brand, type, engine, query]);
+const fallbackImage =
+  "https://placehold.co/1200x700/111318/e5e7eb?text=AutoSpec+AI";
 
-  function scrollCars() { document.getElementById("featured")?.scrollIntoView({behavior:"smooth"}); }
-  function sendQuestion() {
-    const q = question.trim();
-    if (!q) return;
-    const lower = q.toLowerCase();
-    const matches = cars.filter((car) => `${car.brand} ${car.model} ${car.type} ${car.engine} ${car.fuel}`.toLowerCase().includes(lower));
-    let answer: string;
-    if (matches.length) answer = `I found: ${matches.slice(0,5).map((c) => `${c.brand} ${c.model} — ${c.type}, ${c.engine}, ${c.power}`).join("; ")}. Click a vehicle card to see more details.`;
-    else if (/suv|family|off.?road|space/.test(lower)) answer = `SUV options in this demo catalogue: ${cars.filter(c=>c.type==="SUV").map(c=>`${c.brand} ${c.model}`).join(" and ")}.`;
-    else if (/budget|cheap|price|afford/.test(lower)) answer = `Some lower listed prices in this sample catalogue: ${[...cars].sort((a,b)=>Number(a.price.replace(/[$,]/g,""))-Number(b.price.replace(/[$,]/g,""))).slice(0,3).map(c=>`${c.brand} ${c.model} (${c.price})`).join(", ")}. Prices are examples and may not reflect your local market.`;
-    else if (/fast|sport|power|performance|horsepower/.test(lower)) answer = `Performance examples: ${[...cars].sort((a,b)=>Number(b.power.match(/\d+/)?.[0]||0)-Number(a.power.match(/\d+/)?.[0]||0)).slice(0,3).map(c=>`${c.brand} ${c.model} (${c.power})`).join(", ")}. Please verify exact trim specifications.`;
-    else answer = "I can search the local demo catalogue, but this is not connected to a live AI model yet. Try a specific model (like Toyota Camry), or ask for an SUV, budget car or performance car.";
-    setChat((old)=>[...old,{role:"user",text:q},{role:"assistant",text:answer}]);
-    setQuestion("");
+const featuredImage = "/cars/toyota-supra-2024-blue.png";
+
+const initialValuationForm = {
+  brand: "Toyota",
+  model: "",
+  year: "2022",
+  mileage: "",
+  condition: "Good",
+  location: "Colombo",
+  fuel: "Petrol",
+  transmission: "Automatic",
+};
+
+function formatLKR(value: number | string) {
+  const numericValue =
+    typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return String(value);
   }
 
-  return <main className="min-h-screen bg-[#050505] text-white">
-    <nav className="absolute left-0 right-0 top-0 z-20"><div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
-      <a href="#" className="text-xl font-bold tracking-[0.18em]">AUTOSPEC<span className="text-zinc-500">.</span></a>
-      <div className="hidden items-center gap-8 text-sm text-zinc-400 md:flex"><a href="#" className="text-white">Explore</a><a href="#brands" className="hover:text-white">Brands</a><a href="#featured" className="hover:text-white">Vehicles</a><a href="#about" className="hover:text-white">About</a></div>
-      <button onClick={()=>setAiOpen(true)} className="rounded-full border border-white/20 px-5 py-2 text-sm hover:bg-white hover:text-black">AI Assistant ↗</button>
-    </div></nav>
+  return new Intl.NumberFormat("en-LK", {
+    style: "currency",
+    currency: "LKR",
+    maximumFractionDigits: 0,
+  }).format(numericValue);
+}
 
-    <section className="relative flex min-h-[690px] items-center overflow-hidden"><div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage:"linear-gradient(90deg, rgba(5,5,5,.96) 0%, rgba(5,5,5,.7) 45%, rgba(5,5,5,.15) 100%), url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=2200&q=90')"}}/><div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/30"/>
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-6 pt-24 lg:px-10"><div className="max-w-3xl"><p className="mb-5 text-xs font-semibold uppercase tracking-[0.35em] text-zinc-400">Intelligent Car Discovery</p><h1 className="text-5xl font-semibold leading-[.95] tracking-[-.04em] sm:text-6xl lg:text-8xl">Find the car<br/><span className="text-zinc-400">that fits you.</span></h1><p className="mt-7 max-w-xl text-base leading-7 text-zinc-300 sm:text-lg">Explore vehicles, discover specifications, compare models and find your perfect match.</p><div className="mt-10 flex flex-col gap-3 sm:flex-row"><button onClick={scrollCars} className="rounded-full bg-white px-7 py-4 text-sm font-semibold text-black hover:bg-zinc-200">Explore Cars →</button><button onClick={()=>setAiOpen(true)} className="rounded-full border border-white/20 bg-white/5 px-7 py-4 text-sm hover:bg-white/10">Ask AI Assistant ↗</button></div></div></div>
-      <div className="absolute bottom-8 right-8 hidden text-right lg:block"><p className="text-xs uppercase tracking-[0.3em] text-zinc-500">Discover</p><p className="mt-1 text-sm text-zinc-300">Performance · Design · Technology</p></div>
-    </section>
+function getListings(result: ValuationResult) {
+  const primary = Array.isArray(result.listings)
+    ? result.listings
+    : [];
 
-    <section className="relative z-10 mx-auto -mt-10 max-w-6xl px-6"><div className="rounded-2xl border border-white/10 bg-[#101010]/95 p-3 shadow-2xl backdrop-blur-xl"><div className="grid gap-3 md:grid-cols-[1.5fr_1fr_1fr_auto]">
-      <label className="rounded-xl bg-white/[.05] px-5 py-3"><span className="block text-[10px] uppercase tracking-widest text-zinc-500">Search cars</span><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Try Toyota Camry, BMW M4..." className="mt-1 w-full bg-transparent text-sm outline-none placeholder:text-zinc-600"/></label>
-      <label className="rounded-xl bg-white/[.05] px-5 py-3"><span className="block text-[10px] uppercase tracking-widest text-zinc-500">Body type</span><select value={type} onChange={e=>setType(e.target.value)} className="mt-1 w-full bg-transparent text-sm text-zinc-200 outline-none"><option className="bg-[#101010]" value="All">Any type</option>{[...new Set(cars.map(c=>c.type))].map(t=><option className="bg-[#101010]" key={t}>{t}</option>)}</select></label>
-      <label className="rounded-xl bg-white/[.05] px-5 py-3"><span className="block text-[10px] uppercase tracking-widest text-zinc-500">Engine</span><select value={engine} onChange={e=>setEngine(e.target.value)} className="mt-1 w-full bg-transparent text-sm text-zinc-200 outline-none"><option className="bg-[#101010]" value="All">Any engine</option>{["Turbo","Hybrid","V8","V10"].map(e=><option className="bg-[#101010]" key={e}>{e}</option>)}</select></label>
-      <button onClick={scrollCars} className="rounded-xl bg-white px-7 py-4 text-sm font-semibold text-black hover:bg-zinc-200">Search ↗</button>
-    </div></div></section>
+  const secondary = Array.isArray(result.results)
+    ? result.results
+    : [];
 
-    <section id="brands" className="mx-auto max-w-7xl px-6 py-20 lg:px-10"><div className="mb-10"><p className="text-xs uppercase tracking-[.3em] text-zinc-500">Explore</p><h2 className="mt-3 text-3xl font-semibold sm:text-4xl">Popular Brands</h2></div><div className="flex flex-wrap gap-3">{["All",...brands].map(b=><button key={b} onClick={()=>setBrand(b)} className={`rounded-full border px-5 py-3 text-sm transition ${brand===b?"border-white bg-white text-black":"border-white/10 text-zinc-400 hover:border-white/30 hover:text-white"}`}>{b}</button>)}</div></section>
+  return primary.length > 0 ? primary : secondary;
+}
 
-    <section id="featured" className="mx-auto max-w-7xl px-6 pb-28 lg:px-10"><div className="mb-10 flex items-end justify-between gap-4"><div><p className="text-xs uppercase tracking-[.3em] text-zinc-500">Curated selection</p><h2 className="mt-3 text-3xl font-semibold sm:text-4xl">Explore Vehicles</h2><p className="mt-3 text-sm text-zinc-500">{filteredCars.length} vehicle(s) found</p></div><button onClick={()=>{setBrand("All");setType("All");setEngine("All");setQuery("");}} className="text-sm text-zinc-400 underline underline-offset-4 hover:text-white">Clear filters</button></div>
-      {filteredCars.length===0?<div className="rounded-2xl border border-white/10 p-12 text-center"><p className="text-lg">No matching cars found</p><p className="mt-2 text-sm text-zinc-400">Try another model name or clear the filters.</p></div>:<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredCars.map(car=><article key={car.id} role="button" tabIndex={0} onClick={()=>{setActiveCar(car);setActiveColor(0);}} onKeyDown={e=>{if(e.key==="Enter"){setActiveCar(car);setActiveColor(0);}}} className="group cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-white/[.03] transition hover:-translate-y-1 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/50">
-        <div className="relative aspect-[16/10] overflow-hidden"><img src={car.image} alt={`${car.brand} ${car.model}`} className="h-full w-full object-cover transition duration-700 group-hover:scale-105"/><span className="absolute left-4 top-4 rounded-full bg-black/70 px-3 py-1.5 text-xs">{car.type}</span><span className="absolute bottom-4 right-4 rounded-full bg-black/70 px-3 py-1.5 text-xs">View details ↗</span></div>
-        <div className="p-6"><p className="text-xs uppercase tracking-widest text-zinc-500">{car.brand}</p><h3 className="mt-2 text-2xl font-semibold">{car.model}</h3><div className="mt-5 grid grid-cols-2 gap-4 border-y border-white/10 py-5"><div><p className="text-xs text-zinc-500">Engine</p><p className="mt-1 text-sm">{car.engine}</p></div><div><p className="text-xs text-zinc-500">Power</p><p className="mt-1 text-sm">{car.power}</p></div></div><div className="mt-5 flex items-center justify-between"><div><p className="text-xs text-zinc-500">Example starting price</p><p className="mt-1 font-medium">{car.price}</p></div><span className="rounded-full border border-white/10 px-4 py-2 text-sm group-hover:bg-white group-hover:text-black">View →</span></div></div>
-      </article>)}</div>}
-      <p className="mt-8 text-xs leading-5 text-zinc-600">Demo catalogue only. Images may be representative; prices and specifications are examples and should be verified for the exact model year, trim and market.</p>
-    </section>
+export default function Home() {
+  const [cars, setCars] = useState<Car[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    <section id="about" className="border-y border-white/10"><div className="mx-auto max-w-7xl px-6 py-24 lg:px-10"><div className="max-w-3xl"><p className="text-xs uppercase tracking-[.3em] text-zinc-500">Smart car discovery</p><h2 className="mt-5 text-4xl font-semibold sm:text-6xl">Tell us what you want.<br/><span className="text-zinc-500">Let’s find your match.</span></h2><p className="mt-6 max-w-xl leading-7 text-zinc-400">Describe your budget, preferred engine, body style and driving needs.</p><button onClick={()=>setAiOpen(true)} className="mt-8 rounded-full bg-white px-7 py-4 text-sm font-semibold text-black hover:bg-zinc-200">Start with AI ↗</button></div></div></section>
-    <footer className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-10 text-sm text-zinc-500 sm:flex-row sm:justify-between"><p>© 2026 AutoSpec AI</p><p>Intelligent Car Discovery Platform</p></footer>
+  const [search, setSearch] = useState("");
+  const [selectedBrand, setSelectedBrand] = useState("All");
+  const [selectedColorFilter, setSelectedColorFilter] =
+    useState("All");
 
-    {activeCar&&<div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" onClick={()=>setActiveCar(null)}><div role="dialog" aria-modal="true" onClick={e=>e.stopPropagation()} className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-white/15 bg-[#101010] shadow-2xl"><div className="flex items-center justify-between border-b border-white/10 px-6 py-4"><p className="text-sm text-zinc-400">VEHICLE DETAILS</p><button onClick={()=>setActiveCar(null)} className="rounded-full border border-white/15 px-3 py-1.5">✕</button></div><div className="grid md:grid-cols-2"><img src={activeCar.image} alt={`${activeCar.brand} ${activeCar.model}`} className="h-full min-h-64 max-h-[440px] w-full object-cover"/><div className="p-6 sm:p-8"><p className="text-xs uppercase tracking-widest text-zinc-500">{activeCar.brand} · {activeCar.type}</p><h2 className="mt-2 text-3xl font-semibold">{activeCar.model}</h2><p className="mt-4 leading-7 text-zinc-400">{activeCar.description}</p><p className="mt-6 text-xs uppercase tracking-widest text-zinc-500">Choose a sample colour</p><div className="mt-3 flex flex-wrap gap-2">{activeCar.colors.map((c,i)=><button key={c.name} onClick={()=>setActiveColor(i)} className={`flex items-center gap-2 rounded-full border px-3 py-2 text-xs ${activeColor===i?"border-white":"border-white/10 text-zinc-400"}`}><span className="h-4 w-4 rounded-full border border-white/20" style={{backgroundColor:c.hex}}/>{c.name}</button>)}</div><p className="mt-2 text-xs text-zinc-500">Selected: {activeCar.colors[activeColor]?.name}. The demo colour selector changes the selection label; it does not recolour the photo.</p><div className="mt-5 grid grid-cols-2 gap-3">{[["Engine",activeCar.engine],["Power",activeCar.power],["Fuel",activeCar.fuel],["Transmission",activeCar.transmission],["Body type",activeCar.type],["Example price",activeCar.price]].map(([k,v])=><div key={k} className="rounded-xl border border-white/10 bg-white/[.03] p-3"><p className="text-xs text-zinc-500">{k}</p><p className="mt-1 text-sm">{v}</p></div>)}</div><button onClick={()=>{setActiveCar(null);setAiOpen(true);setChat(old=>[...old,{role:"assistant",text:`You are viewing ${activeCar.brand} ${activeCar.model}. Ask me to find similar cars or compare models.`}]);}} className="mt-6 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black">Ask about this car ↗</button></div></div></div></div>}
+  const [activeCar, setActiveCar] = useState<Car | null>(null);
+  const [selectedColor, setSelectedColor] = useState("Blue");
 
-    {aiOpen&&<div className="fixed inset-0 z-50 flex items-end justify-end bg-black/60 p-0 backdrop-blur-sm sm:p-5" onClick={()=>setAiOpen(false)}><section role="dialog" aria-modal="true" aria-label="AutoSpec assistant" onClick={e=>e.stopPropagation()} className="flex h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl border border-white/15 bg-[#101010] shadow-2xl sm:h-[min(700px,90vh)] sm:rounded-3xl"><div className="flex items-center justify-between border-b border-white/10 p-5"><div><p className="font-semibold">AutoSpec Assistant</p><p className="mt-1 text-xs text-zinc-500">Catalogue assistant · Demo mode</p></div><button onClick={()=>setAiOpen(false)} className="rounded-full border border-white/15 px-3 py-1.5">✕</button></div><div className="flex-1 space-y-4 overflow-y-auto p-5">{chat.map((m,i)=><div key={i} className={`flex ${m.role==="user"?"justify-end":"justify-start"}`}><p className={`max-w-[88%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 ${m.role==="user"?"bg-white text-black":"border border-white/10 bg-white/[.04] text-zinc-200"}`}>{m.text}</p></div>)}<div className="flex flex-wrap gap-2">{["Show me an SUV","Budget-friendly cars","Performance cars"].map(s=><button key={s} onClick={()=>setQuestion(s)} className="rounded-full border border-white/15 px-3 py-2 text-xs text-zinc-300 hover:bg-white/10">{s}</button>)}</div></div><form onSubmit={e=>{e.preventDefault();sendQuestion();}} className="flex gap-2 border-t border-white/10 p-4"><input value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Ask about a car..." className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[.05] px-4 py-3 text-sm outline-none placeholder:text-zinc-600"/><button type="submit" className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-black">Send</button></form><p className="px-5 pb-4 text-[10px] leading-4 text-zinc-600">This is a local demo assistant, not a live AI model. A secure backend/API is needed for real AI answers and live vehicle data.</p></section></div>}
-  </main>;
+  const [valuationForm, setValuationForm] = useState(
+    initialValuationForm
+  );
+  const [valuationLoading, setValuationLoading] = useState(false);
+  const [valuationError, setValuationError] = useState("");
+  const [valuationResult, setValuationResult] =
+    useState<ValuationResult | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCars() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch("/api/cars");
+
+        if (!response.ok) {
+          throw new Error("Could not load the car catalogue.");
+        }
+
+        const data = await response.json();
+
+        if (!cancelled) {
+          setCars(Array.isArray(data.cars) ? data.cars : []);
+        }
+      } catch {
+        if (!cancelled) {
+          setError("Cars could not be loaded. Please try again.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadCars();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const displayedCars = useMemo(() => {
+    return cars.filter((car) => {
+      const searchable = [
+        car.brand,
+        car.model,
+        car.year,
+        car.engine,
+        car.bodyType,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch = searchable.includes(
+        search.trim().toLowerCase()
+      );
+
+      const matchesBrand =
+        selectedBrand === "All" ||
+        car.brand.toLowerCase() === selectedBrand.toLowerCase();
+
+      const matchesColor =
+        selectedColorFilter === "All" ||
+        car.colors.some(
+          (color) =>
+            color.toLowerCase() ===
+            selectedColorFilter.toLowerCase()
+        );
+
+      return matchesSearch && matchesBrand && matchesColor;
+    });
+  }, [cars, search, selectedBrand, selectedColorFilter]);
+
+  const activePreviewImage = activeCar
+    ? activeCar.imagesByColor[selectedColor] ?? activeCar.image
+    : "";
+
+  const resultListings = valuationResult
+    ? getListings(valuationResult)
+    : [];
+
+  function openCar(car: Car) {
+    setActiveCar(car);
+    setSelectedColor(car.colors[0] ?? "Blue");
+  }
+
+  function closeModal() {
+    setActiveCar(null);
+  }
+
+  function handleImageError(
+    event: React.SyntheticEvent<HTMLImageElement>
+  ) {
+    const image = event.currentTarget;
+
+    if (image.dataset.fallback === "true") return;
+
+    image.dataset.fallback = "true";
+    image.src = fallbackImage;
+  }
+
+  function updateValuationField(
+    field: keyof typeof initialValuationForm,
+    value: string
+  ) {
+    setValuationForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  async function handleValuationSubmit(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    setValuationLoading(true);
+    setValuationError("");
+    setValuationResult(null);
+
+    try {
+      const response = await fetch("/api/valuation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          brand: valuationForm.brand.trim(),
+          model: valuationForm.model.trim(),
+          year: Number(valuationForm.year),
+          mileage: Number(valuationForm.mileage),
+          condition: valuationForm.condition,
+          location: valuationForm.location.trim(),
+          fuel: valuationForm.fuel,
+          transmission: valuationForm.transmission,
+          currency: "LKR",
+        }),
+      });
+
+      const data = (await response.json()) as ValuationResult;
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            data.error ||
+            "The valuation service could not process this request."
+        );
+      }
+
+      if (data.success === false) {
+        throw new Error(
+          data.message ||
+            data.error ||
+            "The valuation could not be completed."
+        );
+      }
+
+      setValuationResult(data);
+    } catch (err) {
+      setValuationError(
+        err instanceof Error
+          ? err.message
+          : "Unable to connect to the valuation service."
+      );
+    } finally {
+      setValuationLoading(false);
+    }
+  }
+
+  const estimatedPrice =
+    valuationResult?.estimatedPrice ??
+    valuationResult?.estimated_price ??
+    null;
+
+  const priceRange =
+    valuationResult?.priceRange ??
+    valuationResult?.price_range ??
+    null;
+
+  const valuationSummary =
+    valuationResult?.summary ??
+    valuationResult?.analysis ??
+    null;
+
+  return (
+    <main className="min-h-screen overflow-x-hidden bg-[#07090d] text-white">
+      {/* Navigation */}
+      <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#07090d]/90 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+          <a href="#home" className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-lg font-black text-cyan-300">
+              A
+            </div>
+            <div>
+              <p className="text-lg font-black tracking-tight">
+                AutoSpec <span className="text-cyan-400">AI</span>
+              </p>
+              <p className="text-[9px] uppercase tracking-[0.3em] text-zinc-500">
+                Intelligent automotive
+              </p>
+            </div>
+          </a>
+
+          <nav className="hidden items-center gap-7 text-sm text-zinc-400 lg:flex">
+            <a href="#catalogue" className="transition hover:text-cyan-300">
+              Explore Cars
+            </a>
+            <a href="#valuation" className="transition hover:text-cyan-300">
+              AI Valuation
+            </a>
+            <a href="#how-it-works" className="transition hover:text-cyan-300">
+              How It Works
+            </a>
+          </nav>
+
+          <a
+            href="#valuation"
+            className="rounded-full bg-cyan-400 px-4 py-2.5 text-sm font-bold text-black transition hover:bg-cyan-300 sm:px-5"
+          >
+            Value My Car ↗
+          </a>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section id="home" className="relative isolate overflow-hidden">
+        <div className="pointer-events-none absolute -left-40 top-0 h-96 w-96 rounded-full bg-cyan-500/[0.09] blur-[130px]" />
+        <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-blue-500/[0.08] blur-[130px]" />
+
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 md:grid-cols-2 md:px-8 md:py-24 lg:gap-16 lg:py-28">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/[0.06] px-3.5 py-2 text-xs font-semibold text-cyan-300">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
+              THE NEXT GENERATION OF CAR DISCOVERY
+            </div>
+
+            <h1 className="max-w-2xl text-5xl font-black leading-[1.03] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+              Discover your
+              <br />
+              next <span className="text-cyan-400">drive.</span>
+            </h1>
+
+            <p className="mt-6 max-w-lg text-base leading-8 text-zinc-400 sm:text-lg">
+              Explore exceptional vehicles and discover a smarter
+              way to understand your car&apos;s value in the Sri Lankan
+              market.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a
+                href="#catalogue"
+                className="rounded-full bg-cyan-400 px-6 py-3.5 font-bold text-black transition hover:bg-cyan-300"
+              >
+                Explore Collection ↗
+              </a>
+              <a
+                href="#valuation"
+                className="rounded-full border border-white/15 px-6 py-3.5 font-semibold transition hover:border-cyan-400/50 hover:bg-white/[0.04]"
+              >
+                AI Car Valuation
+              </a>
+            </div>
+
+            <div className="mt-10 grid max-w-lg grid-cols-3 border-t border-white/10 pt-6">
+              <div>
+                <p className="text-2xl font-black sm:text-3xl">
+                  {cars.length.toString().padStart(2, "0")}
+                  <span className="text-cyan-400">+</span>
+                </p>
+                <p className="mt-1 text-xs text-zinc-500 sm:text-sm">
+                  Demo vehicles
+                </p>
+              </div>
+              <div className="border-x border-white/10 px-4">
+                <p className="text-2xl font-black sm:text-3xl">
+                  AI<span className="text-cyan-400">.</span>
+                </p>
+                <p className="mt-1 text-xs text-zinc-500 sm:text-sm">
+                  Valuation tools
+                </p>
+              </div>
+              <div className="pl-4">
+                <p className="text-2xl font-black sm:text-3xl">
+                  LK<span className="text-cyan-400">.</span>
+                </p>
+                <p className="mt-1 text-xs text-zinc-500 sm:text-sm">
+                  Sri Lanka focus
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Featured sports car */}
+          <div className="relative">
+            <div className="absolute inset-6 rounded-full bg-cyan-400/10 blur-[90px]" />
+
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#11141a] shadow-[0_25px_100px_rgba(0,0,0,0.5)]">
+              <div className="absolute left-5 top-5 z-10 rounded-full border border-white/15 bg-black/60 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300 backdrop-blur">
+                Featured Sports Car
+              </div>
+
+              <img
+                src={featuredImage}
+                alt="Featured Toyota GR Supra sports car"
+                onError={handleImageError}
+                className="aspect-[4/3] w-full object-cover"
+              />
+
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent p-5 pt-20 sm:p-7 sm:pt-24">
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">
+                  Toyota · Performance Series
+                </p>
+                <div className="mt-2 flex items-end justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-black sm:text-3xl">
+                      GR Supra
+                    </h2>
+                    <p className="mt-1 text-sm text-zinc-400">
+                      3.0L Turbo · Inline-6
+                    </p>
+                  </div>
+                  <a
+                    href="#catalogue"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cyan-400 text-xl font-bold text-black transition hover:scale-105"
+                    aria-label="Explore featured car"
+                  >
+                    ↗
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between text-[10px] uppercase tracking-[0.2em] text-zinc-500 sm:text-xs">
+              <span>Design · Performance · Technology</span>
+              <span>01 / COLLECTION</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Car catalogue */}
+      <section
+        id="catalogue"
+        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 md:px-8 md:py-24"
+      >
+        <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-400">
+              Curated collection
+            </p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+              Find your kind of drive.
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-400">
+              Discover vehicle specifications, compare models and
+              explore the details that matter.
+            </p>
+          </div>
+          <p className="text-sm text-zinc-500">
+            {displayedCars.length} vehicles shown
+          </p>
+        </div>
+
+        <div className="mb-8 rounded-3xl border border-white/10 bg-white/[0.025] p-4 sm:p-6">
+          <label
+            htmlFor="car-search"
+            className="mb-2 block text-sm font-semibold text-zinc-300"
+          >
+            Search the collection
+          </label>
+
+          <input
+            id="car-search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Try Toyota, Supra, turbo, sedan..."
+            className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-600 focus:border-cyan-400/70"
+          />
+
+          <div className="mt-5">
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500">
+              Filter by brand
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {brands.map((brand) => (
+                <button
+                  key={brand}
+                  onClick={() => setSelectedBrand(brand)}
+                  className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                    selectedBrand === brand
+                      ? "border-cyan-400 bg-cyan-400 text-black"
+                      : "border-white/10 bg-white/[0.025] text-zinc-400 hover:border-cyan-400/50 hover:text-white"
+                  }`}
+                >
+                  {brand}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-500">
+              Available colours
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {["All", "Blue", "Red", "Black", "White", "Grey", "Silver"].map(
+                (color) => (
+                  <button
+                    key={color}
+                    onClick={() => setSelectedColorFilter(color)}
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
+                      selectedColorFilter === color
+                        ? "border-cyan-400 bg-cyan-400/10 text-cyan-300"
+                        : "border-white/10 text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    {color}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+
+        {loading && (
+          <div className="py-20 text-center text-zinc-400">
+            Loading the collection...
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-6 text-center">
+            <p className="text-red-300">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 rounded-full bg-white px-5 py-2 text-sm font-bold text-black"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && displayedCars.length === 0 && (
+          <div className="rounded-2xl border border-white/10 p-12 text-center">
+            <h3 className="text-xl font-bold">No vehicles found</h3>
+            <p className="mt-2 text-sm text-zinc-500">
+              Try a different search or clear the filters.
+            </p>
+            <button
+              onClick={() => {
+                setSearch("");
+                setSelectedBrand("All");
+                setSelectedColorFilter("All");
+              }}
+              className="mt-5 rounded-full bg-cyan-400 px-5 py-2 text-sm font-bold text-black"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {displayedCars.map((car) => (
+            <article
+              key={car.id}
+              className="group overflow-hidden rounded-3xl border border-white/[0.09] bg-[#101218] transition duration-300 hover:-translate-y-1 hover:border-cyan-400/40"
+            >
+              <div className="relative overflow-hidden bg-[#171a21]">
+                <img
+                  src={car.image}
+                  alt={`${car.brand} ${car.model}`}
+                  onError={handleImageError}
+                  className="aspect-[16/10] w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+                />
+                <span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/70 px-3 py-1.5 text-[10px] font-bold tracking-wider backdrop-blur">
+                  {car.year}
+                </span>
+                <span className="absolute bottom-3 right-3 rounded-full border border-white/10 bg-black/70 px-3 py-1.5 text-[10px] text-zinc-300 backdrop-blur">
+                  {car.bodyType}
+                </span>
+              </div>
+
+              <div className="p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-400">
+                  {car.brand}
+                </p>
+                <h3 className="mt-2 text-2xl font-bold tracking-tight">
+                  {car.model}
+                </h3>
+
+                <div className="mt-5 grid grid-cols-2 gap-4 border-y border-white/[0.08] py-4 text-sm">
+                  <div>
+                    <p className="text-xs text-zinc-500">Engine</p>
+                    <p className="mt-1 font-medium text-zinc-200">
+                      {car.engine}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-500">Power</p>
+                    <p className="mt-1 font-medium text-zinc-200">
+                      {car.horsepower} hp
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-500">Fuel</p>
+                    <p className="mt-1 font-medium text-zinc-200">
+                      {car.fuel}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-500">Transmission</p>
+                    <p className="mt-1 font-medium text-zinc-200">
+                      {car.transmission}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => openCar(car)}
+                  className="mt-5 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] px-4 py-3 text-sm font-bold transition hover:border-cyan-400/50 hover:bg-cyan-400/10"
+                >
+                  Explore specifications
+                  <span className="text-cyan-400">↗</span>
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Agentic AI valuation */}
+      <section
+        id="valuation"
+        className="relative scroll-mt-24 overflow-hidden border-y border-white/[0.08] bg-[#0b0e14]"
+      >
+        <div className="pointer-events-none absolute -right-40 top-0 h-96 w-96 rounded-full bg-cyan-500/[0.08] blur-[120px]" />
+
+        <div className="relative mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-24">
+          <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/[0.06] px-3 py-2 text-xs font-semibold text-cyan-300">
+                <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                INTELLIGENT VALUATION
+              </div>
+
+              <h2 className="mt-6 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
+                Know what
+                <br />
+                your car could
+                <br />
+                <span className="text-cyan-400">be worth.</span>
+              </h2>
+
+              <p className="mt-5 max-w-lg text-sm leading-7 text-zinc-400 sm:text-base">
+                Submit your vehicle details to start the valuation
+                workflow. The service can search for comparable
+                Sri Lankan listings and return information to help
+                estimate a market range.
+              </p>
+
+              <div className="mt-8 space-y-4">
+                {[
+                  {
+                    step: "01",
+                    title: "Vehicle profile",
+                    description:
+                      "Capture the model, year, mileage and condition.",
+                  },
+                  {
+                    step: "02",
+                    title: "Listing research",
+                    description:
+                      "Look for comparable vehicles in the local market.",
+                  },
+                  {
+                    step: "03",
+                    title: "Valuation report",
+                    description:
+                      "Review returned results and any available price estimate.",
+                  },
+                ].map((item) => (
+                  <div key={item.step} className="flex gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/[0.06] text-xs font-bold text-cyan-300">
+                      {item.step}
+                    </div>
+                    <div>
+                      <h3 className="font-bold">{item.title}</h3>
+                      <p className="mt-1 text-sm leading-6 text-zinc-500">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-amber-300/15 bg-amber-300/[0.04] p-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-amber-200">
+                  Important
+                </p>
+                <p className="mt-2 text-sm leading-6 text-zinc-400">
+                  Asking prices from online listings are not confirmed
+                  sale prices. An estimate depends on the quality and
+                  availability of comparable data.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-[#11141b] p-5 shadow-2xl sm:p-7">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-400">
+                    Vehicle valuation agent
+                  </p>
+                  <h3 className="mt-2 text-2xl font-black">
+                    Value my vehicle
+                  </h3>
+                  <p className="mt-2 text-sm text-zinc-500">
+                    Enter your vehicle details below.
+                  </p>
+                </div>
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.07] text-xl">
+                  ✳
+                </div>
+              </div>
+
+              <form onSubmit={handleValuationSubmit} className="space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="valuation-brand"
+                      className="mb-2 block text-xs font-semibold text-zinc-400"
+                    >
+                      Brand
+                    </label>
+                    <select
+                      id="valuation-brand"
+                      required
+                      value={valuationForm.brand}
+                      onChange={(event) => {
+                        const nextBrand = event.target.value;
+                        setValuationForm((current) => ({
+                          ...current,
+                          brand: nextBrand,
+                          model: "",
+                        }));
+                        setTimeout(() => {
+                          document.getElementById("valuation-model")?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                          });
+                        }, 50);
+                      }}
+                      className="w-full rounded-xl border border-white/10 bg-[#090b10] px-3 py-3 text-sm outline-none focus:border-cyan-400"
+                    >
+                      {brands
+                        .filter((brand) => brand !== "All")
+                        .map((brand) => (
+                          <option key={brand} value={brand}>
+                            {brand}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="valuation-model"
+                      className="mb-2 block text-xs font-semibold text-zinc-400"
+                    >
+                      Model
+                    </label>
+                    <select
+                      id="valuation-model"
+                      required
+                      value={valuationForm.model}
+                      onChange={(event) =>
+                        updateValuationField("model", event.target.value)
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-[#090b10] px-3 py-3 text-sm outline-none focus:border-cyan-400"
+                    >
+                      <option value="">Select a {valuationForm.brand} model</option>
+                      {(modelsByBrand[valuationForm.brand] ?? []).map((model) => (
+                        <option key={model} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="valuation-year"
+                      className="mb-2 block text-xs font-semibold text-zinc-400"
+                    >
+                      Manufacturing year
+                    </label>
+                    <input
+                      id="valuation-year"
+                      required
+                      type="number"
+                      min="1980"
+                     max={2027}
+                      value={valuationForm.year}
+                      onChange={(event) =>
+                        updateValuationField("year", event.target.value)
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-[#090b10] px-3 py-3 text-sm outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="valuation-mileage"
+                      className="mb-2 block text-xs font-semibold text-zinc-400"
+                    >
+                      Mileage (km)
+                    </label>
+                    <input
+                      id="valuation-mileage"
+                      required
+                      type="number"
+                      min="0"
+                      value={valuationForm.mileage}
+                      onChange={(event) =>
+                        updateValuationField("mileage", event.target.value)
+                      }
+                      placeholder="e.g. 45000"
+                      className="w-full rounded-xl border border-white/10 bg-[#090b10] px-3 py-3 text-sm outline-none placeholder:text-zinc-600 focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="valuation-condition"
+                      className="mb-2 block text-xs font-semibold text-zinc-400"
+                    >
+                      Vehicle condition
+                    </label>
+                    <select
+                      id="valuation-condition"
+                      value={valuationForm.condition}
+                      onChange={(event) =>
+                        updateValuationField("condition", event.target.value)
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-[#090b10] px-3 py-3 text-sm outline-none focus:border-cyan-400"
+                    >
+                      <option>Excellent</option>
+                      <option>Good</option>
+                      <option>Fair</option>
+                      <option>Needs repair</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="valuation-location"
+                      className="mb-2 block text-xs font-semibold text-zinc-400"
+                    >
+                      Location
+                    </label>
+                    <input
+                      id="valuation-location"
+                      required
+                      value={valuationForm.location}
+                      onChange={(event) =>
+                        updateValuationField("location", event.target.value)
+                      }
+                      placeholder="e.g. Colombo"
+                      className="w-full rounded-xl border border-white/10 bg-[#090b10] px-3 py-3 text-sm outline-none placeholder:text-zinc-600 focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="valuation-fuel"
+                      className="mb-2 block text-xs font-semibold text-zinc-400"
+                    >
+                      Fuel type
+                    </label>
+                    <select
+                      id="valuation-fuel"
+                      value={valuationForm.fuel}
+                      onChange={(event) =>
+                        updateValuationField("fuel", event.target.value)
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-[#090b10] px-3 py-3 text-sm outline-none focus:border-cyan-400"
+                    >
+                      <option>Petrol</option>
+                      <option>Diesel</option>
+                      <option>Hybrid</option>
+                      <option>Plug-in Hybrid</option>
+                      <option>Electric</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="valuation-transmission"
+                      className="mb-2 block text-xs font-semibold text-zinc-400"
+                    >
+                      Transmission
+                    </label>
+                    <select
+                      id="valuation-transmission"
+                      value={valuationForm.transmission}
+                      onChange={(event) =>
+                        updateValuationField(
+                          "transmission",
+                          event.target.value
+                        )
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-[#090b10] px-3 py-3 text-sm outline-none focus:border-cyan-400"
+                    >
+                      <option>Automatic</option>
+                      <option>Manual</option>
+                      <option>CVT</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                {valuationError && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-red-400/20 bg-red-400/[0.05] p-4 text-sm leading-6 text-red-200"
+                  >
+                    <p className="font-bold">Valuation could not complete</p>
+                    <p className="mt-1">{valuationError}</p>
+                    <p className="mt-2 text-xs text-red-200/70">
+                      Check that the /api/valuation route is running and
+                      its required API key is configured.
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={valuationLoading}
+                  className="flex w-full items-center justify-center gap-3 rounded-xl bg-cyan-400 px-5 py-4 font-bold text-black transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {valuationLoading ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+                      Researching vehicle...
+                    </>
+                  ) : (
+                    <>
+                      Start AI Valuation
+                      <span className="text-lg">↗</span>
+                    </>
+                  )}
+                </button>
+
+                <p className="text-center text-xs leading-5 text-zinc-600">
+                  Results depend on available listings and the connected
+                  valuation service.
+                </p>
+              </form>
+
+              {/* Valuation result */}
+              {valuationResult && (
+                <div
+                  aria-live="polite"
+                  className="mt-7 rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.035] p-5"
+                >
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+                    Valuation response
+                  </p>
+
+                  <h4 className="mt-2 text-xl font-bold">
+                    {valuationForm.brand} {valuationForm.model}
+                  </h4>
+
+                  {estimatedPrice !== null && (
+                    <div className="mt-5 rounded-xl border border-white/10 bg-black/20 p-4">
+                      <p className="text-xs text-zinc-500">
+                        Estimated price returned by the service
+                      </p>
+                      <p className="mt-2 text-2xl font-black text-cyan-300">
+                        {typeof estimatedPrice === "number"
+                          ? formatLKR(estimatedPrice)
+                          : estimatedPrice}
+                      </p>
+                      <div className="mt-4 border-t border-white/10 pt-4">
+                        <p className="text-sm font-semibold text-zinc-200">
+                          How this estimate was determined
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-zinc-400">
+                          This estimate is based on online advertisements for similar vehicles. Listings are compared using the make, model, manufacturing year, mileage, fuel type, transmission and stated condition where this information is available. Mileage and condition may influence the indicative estimate.
+                        </p>
+                        <p className="mt-2 text-xs leading-5 text-zinc-500">
+                          Advertised prices may differ from final selling prices. Always open and verify the source listings before making a decision.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {priceRange && (
+                    <div className="mt-4">
+                      <p className="text-xs text-zinc-500">
+                        Price range
+                      </p>
+                      <p className="mt-1 font-bold">{priceRange}</p>
+                    </div>
+                  )}
+
+                  {valuationResult.confidence && (
+                    <div className="mt-4">
+                      <p className="text-xs text-zinc-500">
+                        Confidence reported by service
+                      </p>
+                      <p className="mt-1 font-semibold">
+                        {valuationResult.confidence}
+                      </p>
+                    </div>
+                  )}
+
+                  {valuationSummary && (
+                    <div className="mt-4">
+                      <p className="text-xs text-zinc-500">
+                        Analysis
+                      </p>
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-zinc-300">
+                        {String(valuationSummary)}
+                      </p>
+                    </div>
+                  )}
+
+                  {resultListings.length > 0 && (
+                    <div className="mt-6">
+                      <h5 className="font-bold">
+                        Comparable listing results
+                      </h5>
+                      <div className="mt-3 space-y-3">
+                        {resultListings.map((listing, index) => (
+                          <div
+                            key={`${listing.url ?? listing.link ?? "listing"}-${index}`}
+                            className="rounded-xl border border-white/10 bg-black/20 p-4"
+                          >
+                            <p className="text-sm font-semibold">
+                              {listing.title || "Vehicle listing"}
+                            </p>
+                            {listing.price !== undefined && (
+                              <p className="mt-2 text-sm text-cyan-300">
+                                {String(listing.price)}
+                              </p>
+                            )}
+                            {(listing.snippet || listing.description) && (
+                              <p className="mt-2 text-xs leading-6 text-zinc-400">
+                                {listing.snippet || listing.description}
+                              </p>
+                            )}
+                            {(listing.url || listing.link) && (
+                              <a
+                                href={listing.url || listing.link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-3 inline-flex text-xs font-bold text-cyan-300 hover:text-cyan-200"
+                              >
+                                View source ↗
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!estimatedPrice &&
+                    !priceRange &&
+                    !valuationSummary &&
+                    resultListings.length === 0 && (
+                      <p className="mt-4 text-sm leading-6 text-zinc-400">
+                        The API responded, but it did not return a
+                        recognised price estimate or listing format.
+                        The API response structure may need to be connected
+                        to this result panel.
+                      </p>
+                    )}
+
+                  <p className="mt-5 border-t border-white/10 pt-4 text-xs leading-5 text-zinc-500">
+                    Online asking prices are indicative only and may not
+                    represent actual completed sales.
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setValuationResult(null);
+                      setValuationError("");
+                    }}
+                    className="mt-4 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold transition hover:border-cyan-400/50"
+                  >
+                    Start another valuation
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section
+        id="how-it-works"
+        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 md:px-8 md:py-20"
+      >
+        <div className="max-w-2xl">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-400">
+            Built for smarter decisions
+          </p>
+          <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+            More than a car catalogue.
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-zinc-400">
+            AutoSpec AI combines vehicle discovery with a planned
+            research-based valuation workflow.
+          </p>
+        </div>
+
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {[
+            {
+              number: "01",
+              title: "Discover",
+              text: "Browse vehicles and review their specifications in one place.",
+              icon: "⌕",
+            },
+            {
+              number: "02",
+              title: "Research",
+              text: "Submit a vehicle profile to search for comparable market listings.",
+              icon: "◎",
+            },
+            {
+              number: "03",
+              title: "Understand",
+              text: "Review available evidence and understand the limitations of an estimate.",
+              icon: "↗",
+            },
+          ].map((feature) => (
+            <div
+              key={feature.number}
+              className="rounded-3xl border border-white/[0.08] bg-white/[0.02] p-6 transition hover:border-cyan-400/30"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold tracking-widest text-cyan-400">
+                  {feature.number}
+                </span>
+                <span className="text-2xl text-cyan-300">
+                  {feature.icon}
+                </span>
+              </div>
+              <h3 className="mt-7 text-xl font-bold">{feature.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-zinc-400">
+                {feature.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/[0.08]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-8 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between md:px-8">
+          <a href="#home" className="text-base font-black text-white">
+            AutoSpec <span className="text-cyan-400">AI</span>
+          </a>
+          <p>
+            Vehicle information and valuation estimates require verification.
+          </p>
+          <a href="#home" className="transition hover:text-cyan-300">
+            Back to top ↑
+          </a>
+        </div>
+      </footer>
+
+      {/* Car details modal */}
+      {activeCar && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/85 p-4 backdrop-blur-md"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeModal();
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${activeCar.brand} ${activeCar.model} details`}
+            className="my-auto max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-white/10 bg-[#101219] shadow-2xl"
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#101219]/95 px-5 py-4 backdrop-blur">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+                  {activeCar.brand}
+                </p>
+                <h2 className="mt-1 text-xl font-bold">
+                  {activeCar.model}
+                </h2>
+              </div>
+
+              <button
+                onClick={closeModal}
+                aria-label="Close car details"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-xl transition hover:bg-white/10"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2">
+              <div className="p-4 md:p-6">
+                <img
+                  key={activePreviewImage}
+                  src={activePreviewImage}
+                  alt={`${activeCar.brand} ${activeCar.model} in ${selectedColor}`}
+                  onError={handleImageError}
+                  className="aspect-[4/3] w-full rounded-2xl border border-white/10 bg-zinc-900 object-cover"
+                />
+
+                <p className="mt-5 text-xs font-bold uppercase tracking-widest text-zinc-500">
+                  Choose your colour
+                </p>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {activeCar.colors.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      aria-label={`Select ${color}`}
+                      aria-pressed={selectedColor === color}
+                      className={`flex items-center gap-2 rounded-full border px-3 py-2 text-xs transition ${
+                        selectedColor === color
+                          ? "border-cyan-400 bg-cyan-400/10 text-white"
+                          : "border-white/10 text-zinc-400 hover:border-white/30"
+                      }`}
+                    >
+                      <span
+                        className={`h-4 w-4 rounded-full ${
+                          colorStyles[color] ?? "bg-zinc-500"
+                        }`}
+                      />
+                      {color}
+                      {selectedColor === color && (
+                        <span className="text-cyan-400">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="mt-3 text-xs leading-5 text-zinc-500">
+                  Different colours will show different images only when
+                  separate image files are configured in the API data.
+                </p>
+              </div>
+
+              <div className="p-5 pt-2 md:p-6">
+                <p className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+                  Vehicle specifications
+                </p>
+
+                <h3 className="mt-3 text-3xl font-black">
+                  {activeCar.year} {activeCar.model}
+                </h3>
+
+                <p className="mt-4 text-sm leading-6 text-zinc-400">
+                  {activeCar.description}
+                </p>
+
+                <div className="mt-6">
+                  {[
+                    ["Brand", activeCar.brand],
+                    ["Model year", String(activeCar.year)],
+                    ["Engine", activeCar.engine],
+                    ["Horsepower", `${activeCar.horsepower} hp`],
+                    ["Fuel type", activeCar.fuel],
+                    ["Transmission", activeCar.transmission],
+                    ["Body type", activeCar.bodyType],
+                    [
+                      "Listed demo price",
+                      typeof activeCar.price === "number"
+                        ? formatLKR(activeCar.price)
+                        : activeCar.price,
+                    ],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="flex items-start justify-between gap-4 border-b border-white/[0.08] py-3 text-sm"
+                    >
+                      <span className="text-zinc-500">{label}</span>
+                      <span className="max-w-[60%] text-right font-medium">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="mt-4 text-xs leading-5 text-zinc-600">
+                  Demo catalogue data. Confirm specifications and prices
+                  before making a vehicle purchase decision.
+                </p>
+
+                <button
+                  onClick={closeModal}
+                  className="mt-5 w-full rounded-xl bg-cyan-400 py-3 font-bold text-black transition hover:bg-cyan-300"
+                >
+                  Close details
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
+    </main>
+  );
 }
